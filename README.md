@@ -2,12 +2,19 @@
 
 A simple HTTP service for managing coupons and finding the best applicable coupon for users based on their cart and eligibility criteria.
 
+### 🎥 Demo Video
+
+Watch the demo here:  
+[🎥 Click to watch the demo video](https://www.loom.com/share/1687ffa1f7cc40189771107a8b7d959b)
+
+
+
 ## 🛠 Tech Stack
 
 ### Backend
 - **Node.js** with **Express.js** framework
 - **JavaScript ES Modules** (ESM)
-- **In-memory storage** using Map data structure (no database)
+- **Coupon storage** All coupon stored in mongodb database
 - **CORS** enabled for frontend communication
 
 ### Frontend
