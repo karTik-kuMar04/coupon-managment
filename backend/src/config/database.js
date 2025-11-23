@@ -1,51 +1,43 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI is not defined in .env file');
-  console.error('Please add MONGODB_URI to your .env file');
-}
+// Prevent multiple connections in Vercel serverless
+let isConnected = false;
 
 export async function connectDatabase() {
   if (!MONGODB_URI) {
-    console.error('Cannot connect: MONGODB_URI is not defined');
+    console.error("Cannot connect: MONGODB_URI is not defined");
     return false;
   }
 
+  // Use cached connection
+  if (isConnected) {
+    console.log("MongoDB already connected.");
+    return true;
+  }
+
   try {
-    await mongoose.connect(MONGODB_URI, {
+    const db = await mongoose.connect(MONGODB_URI, {
+      dbName: "couponDB",           // <-- force DB name
       serverSelectionTimeoutMS: 10000,
     });
-    console.log('Connected to MongoDB Atlas successfully');
-    console.log(`Database: ${mongoose.connection.name}`);
+
+    isConnected = db.connections[0].readyState === 1;
+    console.log("MongoDB connected:", db.connection.host);
     return true;
-  } catch (error) {
-    console.error('MongoDB Atlas connection error:', error.message);
-    console.error('Make sure:');
-    console.error('   1. Your IP address is whitelisted in MongoDB Atlas');
-    console.error('   2. Your network allows connections to MongoDB Atlas');
-    console.error('   3. The connection string in .env is correct');
+  } catch (err) {
+    console.error("MongoDB connection error:", err.message);
     return false;
   }
 }
 
 export async function disconnectDatabase() {
-  try {
-    await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
-  } catch (error) {
-    console.error('MongoDB disconnection error:', error);
-  }
+  if (!isConnected) return;
+  await mongoose.disconnect();
+  isConnected = false;
+  console.log("MongoDB disconnected.");
 }
-mongoose.connection.on('error', (err) => {
-  console.error('MongoDB connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected');
-});
-
