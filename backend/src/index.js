@@ -8,7 +8,6 @@ import couponRoutes from './routes/couponRoutes.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 const corsOptions = {
@@ -52,47 +51,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-async function startServer() {
-  try {
-    const dbConnected = await connectDatabase();
-    
-    if (!dbConnected) {
-      console.warn('Starting server without database connection...');
-      console.warn('API will not work until MongoDB is connected');
-    }
-    
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`API endpoints:`);
-      console.log(`   POST   http://localhost:${PORT}/coupons`);
-      console.log(`   GET    http://localhost:${PORT}/coupons`);
-      console.log(`   POST   http://localhost:${PORT}/coupons/best-coupon`);
-      console.log(`CORS enabled for: ${CORS_ORIGIN}`);
-      
-      if (!dbConnected) {
-        console.log('');
-        console.log('MongoDB is not connected. Please start MongoDB and restart the server.');
-      }
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-}
+// Connect to DB one time
+connectDatabase();
 
-startServer();
 
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  const { disconnectDatabase } = await import('./config/database.js');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  const { disconnectDatabase } = await import('./config/database.js');
-  await disconnectDatabase();
-  process.exit(0);
-});
-
+export default app;
