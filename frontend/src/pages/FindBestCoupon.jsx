@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/coupons';
+import { API_BASE } from '../config/api';
 const categoryOptions = ['electronics', 'clothing', 'food', 'books', 'sports'];
 
 export default function FindBestCoupon() {
@@ -57,7 +56,7 @@ export default function FindBestCoupon() {
         })).filter(item => item.category)
       };
 
-      const response = await axios.post(`${API_BASE}/best-coupon`, { user, cart });
+      const response = await axios.post(`${API_BASE}/coupons/best-coupon`, { user, cart });
       setBestCouponResult(response.data);
       
       if (!response.data.bestCoupon) {

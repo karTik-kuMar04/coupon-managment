@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/coupons';
+import { API_BASE } from '../config/api';
 
 const categoryOptions = ['electronics', 'clothing', 'food', 'books', 'sports'];
 
@@ -67,7 +66,7 @@ export default function CreateCoupon() {
         payload.description = couponForm.description;
       }
 
-      await axios.post(API_BASE, payload);
+      await axios.post(`${API_BASE}/coupons`, payload);
       setMessage({ type: 'success', text: `Coupon "${couponForm.code}" created successfully!` });
       
       setCouponForm({

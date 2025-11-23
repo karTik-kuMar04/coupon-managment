@@ -8,10 +8,16 @@ import couponRoutes from './routes/couponRoutes.js';
 dotenv.config();
 
 const app = express();
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+const getCorsOrigin = () => {
+  if (process.env.VERCEL) {
+    return process.env.CORS_ORIGIN || '*';
+  }
+  return process.env.CORS_ORIGIN || 'http://localhost:5173';
+};
 
 const corsOptions = {
-  origin: CORS_ORIGIN,
+  origin: getCorsOrigin(),
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -19,6 +25,19 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Handle /api prefix from Vercel routing
+// When Vercel routes /api/* to this file, we need to strip the /api prefix
+// or mount routes under /api. We'll do both for flexibility.
+app.use((req, res, next) => {
+  // If the path starts with /api, remove it for internal routing
+  if (req.path.startsWith('/api')) {
+    req.url = req.url.replace(/^\/api/, '') || '/';
+    req.path = req.path.replace(/^\/api/, '') || '/';
+  }
+  next();
+});
+
+// Mount routes - these will work with or without /api prefix
 app.use('/coupons', couponRoutes);
 
 app.get('/health', (req, res) => {
@@ -51,8 +70,23 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to DB one time
-connectDatabase();
+// Connect to database - this will be called on each serverless invocation
+// In serverless, connections are reused across invocations when possible
+if (process.env.VERCEL) {
+  // On Vercel, connect to DB but don't start a server
+  connectDatabase().catch(err => {
+    console.error('Database connection error on Vercel:', err);
+  });
+} else {
+  // Local development: start Express server
+  const PORT = process.env.PORT || 3000;
+  connectDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  });
+}
 
-
+// Export the Express app for Vercel serverless functions
+// Vercel's @vercel/node builder will automatically wrap this as a handler
 export default app;

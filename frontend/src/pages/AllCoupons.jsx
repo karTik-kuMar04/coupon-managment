@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/coupons';
+import { API_BASE } from '../config/api';
 
 export default function AllCoupons() {
   const [coupons, setCoupons] = useState([]);
@@ -15,7 +14,7 @@ export default function AllCoupons() {
   const fetchCoupons = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(API_BASE);
+      const response = await axios.get(`${API_BASE}/coupons`);
       setCoupons(response.data.coupons || []);
       setError('');
     } catch (err) {
